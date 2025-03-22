@@ -9,7 +9,7 @@ import random
 # Configuration
 IMG_SIZE = (299, 299)
 BATCH_SIZE = 4  # Reduced for memory constraints
-EPOCHS = 50
+EPOCHS = 30
 SEQ_LENGTH = 7  # Number of frames per video
 
 
