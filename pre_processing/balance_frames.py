@@ -68,4 +68,4 @@ def balanced_sampling(video_dir, target_frames=7):
 
 
 # Apply to real videos only
-balanced_sampling('deepfake_dataset/LQ/train/fake/felc0')
+balanced_sampling('deepfake_dataset/LQ/train/real/mdld0')
