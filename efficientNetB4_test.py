@@ -6,12 +6,15 @@ import seaborn as sns
 import os
 import random
 
-IMG_SIZE = (380, 380)
-SEQ_LENGTH = 7
+# Configuration settings
+IMG_SIZE = (380, 380)  # Input size for EfficientNet
+SEQ_LENGTH = 7  # Number of frames per video
 BATCH_SIZE = 4
 
 
 class BalancedVideoGenerator(tf.keras.utils.Sequence):
+    """Generates balanced batches of real and fake video sequences."""
+
     def __init__(self, real_dir, fake_dir, batch_size=4):
         self.real_videos = self._get_video_paths(real_dir)
         self.fake_videos = self._get_video_paths(fake_dir)
@@ -21,16 +24,19 @@ class BalancedVideoGenerator(tf.keras.utils.Sequence):
         np.random.shuffle(self.indices)
 
     def _get_video_paths(self, path):
+        """Retrieves video directories containing exactly SEQ_LENGTH frames."""
         return [os.path.join(root, d)
                 for root, dirs, _ in os.walk(path)
                 for d in dirs if len(os.listdir(os.path.join(root, d))) == SEQ_LENGTH]
 
     def __len__(self):
+        """Returns the number of batches per epoch."""
         return len(self.indices) // self.batch_size
 
     def __getitem__(self, idx):
-        batch_real = random.sample(self.real_videos, self.batch_size//2)
-        batch_fake = random.sample(self.fake_videos, self.batch_size//2)
+        """Loads and preprocesses a batch of video sequences."""
+        batch_real = random.sample(self.real_videos, self.batch_size // 2)
+        batch_fake = random.sample(self.fake_videos, self.batch_size // 2)
 
         sequences, labels = [], []
         for video in batch_real + batch_fake:
@@ -40,14 +46,17 @@ class BalancedVideoGenerator(tf.keras.utils.Sequence):
                 tf.keras.preprocessing.image.img_to_array(
                     tf.keras.preprocessing.image.load_img(
                         f, target_size=IMG_SIZE)
-                )) for f in frame_paths]
+                )) for f in frame_paths]  # Preprocess frames for EfficientNet
             sequences.append(processed_frames)
+            # Label: 0 = Real, 1 = Fake
             labels.append(0 if video in batch_real else 1)
 
         return np.array(sequences), np.array(labels)
 
 
 def evaluate_test_set():
+    """Evaluates the trained model on the test dataset and generates performance metrics."""
+
     # Initialize test generator
     test_gen = BalancedVideoGenerator(
         'deepfake_dataset/LQ/test/real',
@@ -58,10 +67,10 @@ def evaluate_test_set():
     print(
         f"Test videos - Real: {len(test_gen.real_videos)}, Fake: {len(test_gen.fake_videos)}")
 
-    # Load best model
+    # Load the best trained model
     model = tf.keras.models.load_model('weights/best_model_effnet.keras')
 
-    # Evaluate on test set
+    # Evaluate model on test data
     print("\nEvaluating on test set...")
     test_results = model.evaluate(test_gen)
     print(f"\nTest Loss: {test_results[0]:.4f}")
@@ -76,14 +85,15 @@ def evaluate_test_set():
         y_true.extend(y)
         y_pred_probs.extend(model.predict(X, verbose=0).flatten())
 
-    y_pred = (np.array(y_pred_probs) > 0.5).astype(int)
+    y_pred = (np.array(y_pred_probs) > 0.5).astype(
+        int)  # Convert probabilities to binary labels
 
-    # Classification Report
+    # Display classification report
     class_names = ['Real', 'Fake']
     print("\nClassification Report:")
     print(classification_report(y_true, y_pred, target_names=class_names))
 
-    # Confusion Matrix
+    # Generate and visualize confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
@@ -94,7 +104,7 @@ def evaluate_test_set():
     plt.title('Test Set Confusion Matrix')
     plt.show()
 
-    # ROC Curve
+    # Generate and plot ROC curve
     fpr, tpr, _ = roc_curve(y_true, y_pred_probs)
     roc_auc = auc(fpr, tpr)
 
