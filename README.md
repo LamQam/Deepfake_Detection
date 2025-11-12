@@ -1,6 +1,6 @@
 # Deepfake Detection
 
-A deep learning-based project for detecting deepfake videos and images, focusing on robustness under social media compression. This project evaluates multiple state-of-the-art deep learning models for deepfake detection and provides tools for model training and evaluation.
+A deep learning-based project for detecting deepfake videos and images, focusing on robustness under social media compression. This project evaluates multiple state-of-the-art CNN models for deepfake detection and provides tools for model training and evaluation.
 
 ## Features
 
@@ -54,6 +54,9 @@ Deepfake_Detection/
 ├── VidTIMIT_deepfake_dataset/  # DeepfakeTIMIT dataset
 ├── WDFtest/                # WildDeepfake test implementations
 ├── WildDeepfake/           # Code for models trained on WildDeepfake dataset
+├── weights/                # Trained model weights
+│   ├──  VidTIMIT
+│   └──  WD
 ├── pre_processing/         # Data preprocessing utilities
 │   ├── balance_frames.py   # Utility for balancing dataset
 │   └── extract_frame.py    # Frame extraction from videos
